@@ -13,6 +13,7 @@ class ViewController:UIViewController, UITableViewDelegate, UITableViewDataSourc
     let defaults = UserDefaults.standard
     let saveKey = "saveKey"
     var items:[String] = []
+    var tableViewEditing = false;
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.rowHeight = 80
@@ -21,8 +22,33 @@ class ViewController:UIViewController, UITableViewDelegate, UITableViewDataSourc
             self.items = items;
             tableView.reloadData()
         }
+        let longPressGesgure = UILongPressGestureRecognizer(target: self, action: #selector(longPressed))
+        tableView.addGestureRecognizer(longPressGesgure)
+        stopDrag()
     }
-
+    func startDrag()
+    {
+        if(!tableViewEditing)
+        {
+            tableViewEditing = true;
+            tableView.setEditing(true, animated: true)
+            let stopItem = UIBarButtonItem(barButtonSystemItem: .stop, target: self, action: #selector(stopDrag))
+            stopItem.tintColor = UIColor.white
+            navigationItem.rightBarButtonItem = stopItem
+        }
+    }
+    @objc func stopDrag()
+    {
+        tableViewEditing = false
+        tableView.setEditing(false, animated: true)
+        let addButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addItem))
+        addButtonItem.tintColor = UIColor.white
+        navigationItem.rightBarButtonItem = addButtonItem
+    }
+    @objc func longPressed(sender:Any)
+    {
+        startDrag()
+    }
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return items.count
     }
@@ -34,7 +60,7 @@ class ViewController:UIViewController, UITableViewDelegate, UITableViewDataSourc
         return cell
     }
     
-    @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
+   @objc func addItem() {
         var itemTextField:UITextField!
         let alert = UIAlertController(title: "Add Item", message: nil, preferredStyle: .alert)
         alert.addTextField { (textField) in
@@ -74,9 +100,6 @@ class ViewController:UIViewController, UITableViewDelegate, UITableViewDataSourc
         options.transitionStyle = .border
         return options
     }
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.setEditing(true, animated: true)
-    }
     func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCell.EditingStyle {
         // to drag drop
         // this function will return .none
@@ -92,7 +115,6 @@ class ViewController:UIViewController, UITableViewDelegate, UITableViewDataSourc
         let tmp = items[destinationIndexPath.row]
         items[destinationIndexPath.row] = items[sourceIndexPath.row]
         items[sourceIndexPath.row] = tmp
-        tableView.setEditing(false, animated: true)
         defaults.setValue(items, forKey: saveKey)
     }
 }
